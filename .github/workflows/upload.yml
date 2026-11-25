@@ -32,16 +32,25 @@ jobs:
 
     - name: Preparing Files
       env:
-        A11Q_LINK: 'PASTE_A11Q_LINK_HERE'
+        GIT_TERMINAL_PROMPT: 0
       run: |
-        git clone https://github.com/smiley9000/Custom-Rom-Builder-For-Samsung-Galaxy-A11-M11 builder
+        for REPO in \
+          ahmed-ismail1/Custom-Rom-Builder-For-Samsung-Galaxy-A11-M11 \
+          chenjohnliu/Custom-Rom-Builder-For-Samsung-Galaxy-SDM439-SDM450 \
+          SamsungSDM439/Custom-Rom-Builder-For-Samsung-Galaxy-A01-M01 \
+          smiley9000/Custom-Rom-Builder-For-Samsung-Galaxy-A11-M11
+        do
+          echo "Trying $REPO"
+          if git clone --depth 1 "https://github.com/$REPO" builder; then
+            echo "Cloned: $REPO"
+            break
+          fi
+          rm -rf builder
+        done
+        [ -d builder ] || { echo "No builder repo could be cloned"; exit 1; }
         rsync -a --exclude .git builder/ ./
-        if [ ! -f ./arm64_git ] && [ ! -f ./arm32_git ]; then
-          wget -O a11q.zip "$A11Q_LINK"
-          unzip -o a11q.zip
-          rm a11q.zip
-        fi
         ls -la
+        ls -la bin || true
 
     - name: Downloading your GSI
       env:
