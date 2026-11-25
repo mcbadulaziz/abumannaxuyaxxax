@@ -1,23 +1,20 @@
 name: Custom Rom Builder Samsung Galaxy A11/M11
 
 on:
-  push:
-    branches:
-      - main  # Change this to your desired branch
   workflow_dispatch:
     inputs:
       GSI:
-        description: 'direct link for Gsi image '
+        description: 'direct link for Gsi image'
         required: true
-        default: 'https://sourceforge.net/projects/andyyan-gsi/files/lineage-19.x/lineage-19.1-20230715-UNOFFICIAL-a64_bgN.img.xz'        
+        default: 'https://sourceforge.net/projects/andyyan-gsi/files/lineage-19.x/lineage-19.1-20230715-UNOFFICIAL-a64_bgN.img.xz'
       ARCH:
         description: 'ARM64 or ARM32?'
         required: true
-        default: '64'                
+        default: '64'
       NAME:
         description: 'Rom Name'
         required: true
-        default: 'LineageOS_19.1_A11_M11_ARM64_Gapps'                
+        default: 'LineageOS_19.1_A11_M11_ARM64_Gapps'
 
 jobs:
   Build:
@@ -25,24 +22,27 @@ jobs:
 
     steps:
     - name: Checkout Repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
 
     - name: Install Dependencies
       run: |
         sudo apt update
-        sudo apt-get install jq
+        sudo apt-get install -y jq
         sudo apt install -y zip xz-utils unzip p7zip-full wget
-        
+
     - name: Preparing Files
       run: |
-        wget https://sourceforge.net/projects/samsung-galaxy-a01-m01/files/a11q.zip
+        wget -O a11q.zip "A11Q_LINK"
         git clone https://github.com/smiley9000/Custom-Rom-Builder-For-Samsung-Galaxy-A11-M11
         unzip a11q.zip
-        rm -r a11q.zip
+        rm a11q.zip
 
     - name: Downloading your GSI
+      env:
+        GSI_URL: ${{ github.event.inputs.GSI }}
       run: |
-        wget -P "./temp" ${{ github.event.inputs.GSI }} 
+        mkdir -p temp
+        wget --trust-server-names -P ./temp "$GSI_URL"
         chmod 755 *
         chmod 755 ./bin/*
 
@@ -53,5 +53,5 @@ jobs:
     - name: Uploading The Zip to Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ github.event.inputs.NAME }}   # Replace with a suitable name
+        name: ${{ github.event.inputs.NAME }}
         path: ./zip/Custom_Rom_SDM450.zip
