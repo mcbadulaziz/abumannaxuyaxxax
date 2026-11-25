@@ -6,7 +6,7 @@ on:
       GSI:
         description: 'direct link for Gsi image'
         required: true
-        default: 'https://sourceforge.net/projects/andyyan-gsi/files/lineage-19.x/lineage-19.1-20230715-UNOFFICIAL-a64_bgN.img.xz'
+        default: 'https://sourceforge.net/projects/nippongsi/files/MIUI%20-%20MIUI-NoobPerfPlusEditionSpeciallyForPUBG-11.0%20-%20D7DYXKS1CM/MIUI-NoobPerfPlusEditionSpeciallyForPUBG-11.0-AB-11-20221207-NipponGSI.img.gz/download'
       ARCH:
         description: 'ARM64 or ARM32?'
         required: true
@@ -14,7 +14,7 @@ on:
       NAME:
         description: 'Rom Name'
         required: true
-        default: 'LineageOS_19.1_A11_M11_ARM64_Gapps'
+        default: 'MIUI_11_A11_M11_ARM64'
 
 jobs:
   Build:
@@ -27,15 +27,21 @@ jobs:
     - name: Install Dependencies
       run: |
         sudo apt update
-        sudo apt-get install -y jq
+        sudo apt-get install -y jq rsync
         sudo apt install -y zip xz-utils unzip p7zip-full wget
 
     - name: Preparing Files
+      env:
+        A11Q_LINK: 'PASTE_A11Q_LINK_HERE'
       run: |
-        wget -O a11q.zip "A11Q_LINK"
-        git clone https://github.com/smiley9000/Custom-Rom-Builder-For-Samsung-Galaxy-A11-M11
-        unzip a11q.zip
-        rm a11q.zip
+        git clone https://github.com/smiley9000/Custom-Rom-Builder-For-Samsung-Galaxy-A11-M11 builder
+        rsync -a --exclude .git builder/ ./
+        if [ ! -f ./arm64_git ] && [ ! -f ./arm32_git ]; then
+          wget -O a11q.zip "$A11Q_LINK"
+          unzip -o a11q.zip
+          rm a11q.zip
+        fi
+        ls -la
 
     - name: Downloading your GSI
       env:
@@ -43,6 +49,7 @@ jobs:
       run: |
         mkdir -p temp
         wget --trust-server-names -P ./temp "$GSI_URL"
+        ls -la ./temp
         chmod 755 *
         chmod 755 ./bin/*
 
